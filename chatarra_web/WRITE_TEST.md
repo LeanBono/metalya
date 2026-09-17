@@ -1,2 +1,1 @@
-# Write test
-If you see this, write access works.
+<!-- temporary test file, safe to delete -->
