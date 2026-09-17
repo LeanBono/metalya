@@ -1,0 +1,99 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum LeadStatus { NEW CONTACTED QUOTED SCHEDULED CLOSED LOST }
+enum LotStatus { NEW REVIEWING QUOTED ACCEPTED SCHEDULED COLLECTED CLOSED CANCELLED }
+enum QuoteStatus { DRAFT SENT ACCEPTED REJECTED EXPIRED }
+
+model Lead {
+  id          String     @id @default(cuid())
+  name        String
+  company     String?
+  email       String?
+  phone       String
+  location    String?
+  service     String
+  message     String?
+  consent     Boolean
+  status      LeadStatus @default(NEW)
+  lots        Lot[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  @@index([createdAt])
+  @@index([phone])
+  @@index([status])
+}
+
+model Material {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  category    String
+  buyPrice    Decimal  @db.Decimal(14,2)
+  sellPrice   Decimal  @db.Decimal(14,2)
+  unit        String   @default("kg")
+  active      Boolean  @default(true)
+  lotItems    LotItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Lot {
+  id             String     @id @default(cuid())
+  leadId         String?
+  lead           Lead?      @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  title          String
+  description    String?
+  location       String?
+  estimatedKg    Decimal?   @db.Decimal(12,2)
+  status         LotStatus  @default(NEW)
+  photos         LotPhoto[]
+  items          LotItem[]
+  quotes         Quote[]
+  scheduledAt    DateTime?
+  collectedAt    DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  @@index([status])
+  @@index([createdAt])
+}
+
+model LotPhoto {
+  id        String   @id @default(cuid())
+  lotId    String
+  lot       Lot      @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  createdAt DateTime @default(now())
+}
+
+model LotItem {
+  id          String   @id @default(cuid())
+  lotId       String
+  lot         Lot      @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  materialId  String
+  material    Material @relation(fields: [materialId], references: [id])
+  kg          Decimal  @db.Decimal(12,2)
+  buyPrice    Decimal  @db.Decimal(14,2)
+  sellPrice   Decimal  @db.Decimal(14,2)
+}
+
+model Quote {
+  id          String       @id @default(cuid())
+  lotId       String
+  lot         Lot          @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  totalBuy   Decimal      @db.Decimal(14,2)
+  estimatedSell Decimal   @db.Decimal(14,2)
+  operatingCost Decimal    @db.Decimal(14,2) @default(0)
+  offer       Decimal      @db.Decimal(14,2)
+  margin      Decimal      @db.Decimal(14,2)
+  targetMarginPct Decimal   @db.Decimal(5,2) @default(25)
+  actualSell  Decimal?      @db.Decimal(14,2)
+  actualCost  Decimal?      @db.Decimal(14,2)
+  actualProfit Decimal?     @db.Decimal(14,2)
+  notes       String?
+  status      QuoteStatus  @default(DRAFT)
+  validUntil  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  @@index([createdAt])
+}

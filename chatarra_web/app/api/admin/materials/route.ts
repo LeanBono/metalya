@@ -1,0 +1,4 @@
+import { NextResponse } from 'next/server'; import { prisma } from '@/lib/prisma'; import { isAdmin } from '@/lib/auth'; import { z } from 'zod';
+const schema=z.object({name:z.string().trim().min(2).max(80),category:z.string().trim().min(2).max(80),buyPrice:z.coerce.number().min(0),sellPrice:z.coerce.number().min(0),unit:z.string().default('kg')});
+export async function GET(){if(!(await isAdmin()))return NextResponse.json({error:'No autorizado'},{status:401});return NextResponse.json(await prisma.material.findMany({orderBy:{category:'asc'}}));}
+export async function POST(req:Request){if(!(await isAdmin()))return NextResponse.json({error:'No autorizado'},{status:401});try{return NextResponse.json(await prisma.material.create({data:schema.parse(await req.json())}),{status:201});}catch{return NextResponse.json({error:'Datos inválidos o material existente.'},{status:400});}}
