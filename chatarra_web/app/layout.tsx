@@ -1,7 +1,17 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.metalyachatarra.com.ar';
+function safeSiteUrl() {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.metalyachatarra.com.ar';
+  try {
+    const u = new URL(raw);
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.origin;
+  } catch {
+    /* ignore */
+  }
+  return 'https://www.metalyachatarra.com.ar';
+}
+const siteUrl = safeSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -60,7 +70,8 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const ga = process.env.NEXT_PUBLIC_GA_ID;
+  const gaRaw = process.env.NEXT_PUBLIC_GA_ID || '';
+  const ga = /^G-[A-Z0-9]+$/i.test(gaRaw.trim()) ? gaRaw.trim() : '';
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
