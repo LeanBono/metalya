@@ -17,12 +17,11 @@ const schema = z.object({
 export async function POST(req: Request) {
   try {
     const d = schema.parse(await req.json());
-    const lotTitle = `Solicitud - ${d.service}`.slice(0, 120);
+    const lotTitle = (`Solicitud - ${d.service || 'consulta'}`).slice(0, 120);
 
     const lead = await prisma.lead.create({
       data: {
         name: d.name,
-        title: lotTitle,
         company: d.company || null,
         email: d.email || null,
         phone: d.phone,
