@@ -22,6 +22,7 @@ export async function POST(req: Request) {
     const lead = await prisma.lead.create({
       data: {
         name: d.name,
+        title: lotTitle,
         company: d.company || null,
         email: d.email || null,
         phone: d.phone,
@@ -29,22 +30,20 @@ export async function POST(req: Request) {
         service: d.service,
         message: d.message || null,
         consent: d.consent,
-        lots: {
-          create: {
-            title: lotTitle,
-            description: d.message || null,
-            location: d.location || null,
-            estimatedKg: d.estimatedKg ?? null,
-          },
-        },
       },
-      include: { lots: true },
     });
 
-    return NextResponse.json(
-      { ok: true, id: lead.id, lotId: lead.lots[0]?.id },
-      { status: 201 }
-    );
+    const lot = await prisma.lot.create({
+      data: {
+        leadId: lead.id,
+        title: lotTitle,
+        description: d.message || null,
+        location: d.location || null,
+        estimatedKg: d.estimatedKg ?? null,
+      },
+    });
+
+    return NextResponse.json({ ok: true, id: lead.id, lotId: lot.id }, { status: 201 });
   } catch (e) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: 'Revisa los datos ingresados.' }, { status: 400 });

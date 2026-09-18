@@ -38,6 +38,7 @@ enum QuoteStatus {
 model Lead {
   id        String     @id @default(cuid())
   name      String
+  title     String     @default("")
   company   String?
   email     String?
   phone     String
