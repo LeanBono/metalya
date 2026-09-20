@@ -46,6 +46,7 @@ model Lead {
   message   String?
   consent   Boolean
   status    LeadStatus @default(NEW)
+  notes     String?
   lots      Lot[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -61,14 +62,22 @@ model Material {
   category    String
   buyPrice    Decimal   @db.Decimal(14, 2)
   sellPrice   Decimal   @db.Decimal(14, 2)
+  /// kg CO2e evitados por kg reciclado (vs producción primaria)
   co2FactorKg Decimal   @default(1.8) @db.Decimal(8, 3)
+  /// Mínimo de kg para retiro / cotización orientativa
+  minKg       Decimal   @default(0) @db.Decimal(12, 2)
+  /// Nota de zona o condiciones (ej. "CABA y GBA")
+  zoneNote    String?
   unit        String    @default("kg")
   active      Boolean   @default(true)
+  /// Si true, se muestra en cotizador público orientativo
+  publicList  Boolean   @default(true)
   lotItems    LotItem[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
 
+/// Registro de impacto ambiental por operación (lote / ítem)
 model Co2Log {
   id           String   @id @default(cuid())
   lotId        String?
@@ -77,7 +86,7 @@ model Co2Log {
   kg           Decimal  @db.Decimal(12, 2)
   factor       Decimal  @db.Decimal(8, 3)
   co2Kg        Decimal  @db.Decimal(14, 2)
-  source       String   @default("manual")
+  source       String   @default("manual") // manual | quote | collect
   notes        String?
   createdAt    DateTime @default(now())
 
@@ -142,8 +151,21 @@ model Quote {
   notes           String?
   status          QuoteStatus @default(DRAFT)
   validUntil      DateTime?
+  publicToken     String?     @unique
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   @@index([createdAt])
+  @@index([publicToken])
+}
+
+/// Usuarios admin simples (multi-usuario)
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  role         String   @default("admin") // admin | operator
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
