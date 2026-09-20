@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { notifyNewLead, leadWhatsAppMessage, whatsappLink } from '@/lib/notify';
 
 const schema = z.object({
   name: z.string().trim().min(2).max(80),
@@ -42,7 +43,33 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ ok: true, id: lead.id, lotId: lot.id }, { status: 201 });
+    const notifyPayload = {
+      id: lead.id,
+      name: d.name,
+      phone: d.phone,
+      company: d.company || null,
+      location: d.location || null,
+      service: d.service,
+      message: d.message || null,
+      estimatedKg: d.estimatedKg ?? null,
+    };
+    void notifyNewLead(notifyPayload).catch(() => {});
+
+    const clientWa = whatsappLink(
+      leadWhatsAppMessage({
+        name: d.name,
+        phone: d.phone,
+        company: d.company,
+        location: d.location,
+        service: d.service,
+        estimatedKg: d.estimatedKg,
+      })
+    );
+
+    return NextResponse.json(
+      { ok: true, id: lead.id, lotId: lot.id, whatsapp: clientWa },
+      { status: 201 }
+    );
   } catch (e) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: 'Revisa los datos ingresados.' }, { status: 400 });

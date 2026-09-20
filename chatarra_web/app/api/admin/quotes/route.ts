@@ -1,9 +1,110 @@
-import {NextResponse} from 'next/server';
-import {prisma} from '@/lib/prisma';
-import {isAdmin} from '@/lib/auth';
-import {z} from 'zod';
-const schema=z.object({lotId:z.string().optional(),title:z.string().max(120).optional(),location:z.string().max(160).optional(),items:z.array(z.object({materialId:z.string(),kg:z.coerce.number().positive()})).min(1),operatingCost:z.coerce.number().min(0).default(0),offer:z.coerce.number().min(0),targetMarginPct:z.coerce.number().min(0).max(100).default(25),notes:z.string().max(1000).optional()});
-export async function GET(){if(!(await isAdmin()))return NextResponse.json({error:'No autorizado'},{status:401});const quotes=await prisma.quote.findMany({include:{lot:{include:{lead:true,items:{include:{material:true}}}}},orderBy:{createdAt:'desc'},take:100});return NextResponse.json(quotes);}
-export async function POST(req:Request){if(!(await isAdmin()))return NextResponse.json({error:'No autorizado'},{status:401});try{const d=schema.parse(await req.json());const materials=await prisma.material.findMany({where:{id:{in:d.items.map(i=>i.materialId)}}});let buy=0,sell=0;const rows=d.items.map(i=>{const m=materials.find(x=>x.id===i.materialId);if(!m)throw Error('Material');const b=Number(m.buyPrice),s=Number(m.sellPrice);buy+=i.kg*b;sell+=i.kg*s;return {materialId:i.materialId,kg:i.kg,buyPrice:b,sellPrice:s};});const margin=sell-d.offer-d.operatingCost;const marginPct=sell?margin/sell*100:0;
- let lotId=d.lotId; if(!lotId){const lot=await prisma.lot.create({data:{title:d.title||'Nuevo lote',location:d.location||null,items:{create:rows}}});lotId=lot.id;} else {await prisma.lot.update({where:{id:lotId},data:{items:{deleteMany:{},create:rows},title:d.title||undefined,location:d.location||undefined,status:'QUOTED'}})}
- const q=await prisma.quote.create({data:{lotId,totalBuy:buy,estimatedSell:sell,operatingCost:d.operatingCost,offer:d.offer,margin,targetMarginPct:d.targetMarginPct,notes:d.notes||null,status:'DRAFT'}});return NextResponse.json({quote:q,calculated:{buy,sell,maxOffer:Math.max(0,sell-d.operatingCost-sell*d.targetMarginPct/100),profit:margin,marginPct}},{status:201});}catch(e){console.error(e);return NextResponse.json({error:'No se pudo crear la cotización.'},{status:400});}}
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { isAdmin } from '@/lib/auth';
+import { z } from 'zod';
+import { randomBytes } from 'crypto';
+
+const schema = z.object({
+  lotId: z.string().optional(),
+  title: z.string().max(120).optional(),
+  location: z.string().max(160).optional(),
+  items: z
+    .array(z.object({ materialId: z.string(), kg: z.coerce.number().positive() }))
+    .min(1),
+  operatingCost: z.coerce.number().min(0).default(0),
+  offer: z.coerce.number().min(0),
+  targetMarginPct: z.coerce.number().min(0).max(100).default(25),
+  notes: z.string().max(1000).optional(),
+});
+
+export async function GET() {
+  if (!(await isAdmin())) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  const quotes = await prisma.quote.findMany({
+    include: {
+      lot: { include: { lead: true, items: { include: { material: true } } } },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 100,
+  });
+  return NextResponse.json(quotes);
+}
+
+export async function POST(req: Request) {
+  if (!(await isAdmin())) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  try {
+    const d = schema.parse(await req.json());
+    const materials = await prisma.material.findMany({
+      where: { id: { in: d.items.map((i) => i.materialId) } },
+    });
+    let buy = 0;
+    let sell = 0;
+    const rows = d.items.map((i) => {
+      const m = materials.find((x) => x.id === i.materialId);
+      if (!m) throw Error('Material');
+      const b = Number(m.buyPrice);
+      const s = Number(m.sellPrice);
+      buy += i.kg * b;
+      sell += i.kg * s;
+      return { materialId: i.materialId, kg: i.kg, buyPrice: b, sellPrice: s };
+    });
+    const margin = sell - d.offer - d.operatingCost;
+    const marginPct = sell ? (margin / sell) * 100 : 0;
+    const publicToken = randomBytes(16).toString('hex');
+
+    let lotId = d.lotId;
+    if (!lotId) {
+      const lot = await prisma.lot.create({
+        data: {
+          title: d.title || 'Nuevo lote',
+          location: d.location || null,
+          items: { create: rows },
+        },
+      });
+      lotId = lot.id;
+    } else {
+      await prisma.lot.update({
+        where: { id: lotId },
+        data: {
+          items: { deleteMany: {}, create: rows },
+          title: d.title || undefined,
+          location: d.location || undefined,
+          status: 'QUOTED',
+        },
+      });
+    }
+
+    const q = await prisma.quote.create({
+      data: {
+        lotId,
+        totalBuy: buy,
+        estimatedSell: sell,
+        operatingCost: d.operatingCost,
+        offer: d.offer,
+        margin,
+        targetMarginPct: d.targetMarginPct,
+        notes: d.notes || null,
+        status: 'DRAFT',
+        publicToken,
+        validUntil: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    return NextResponse.json(
+      {
+        quote: q,
+        calculated: {
+          buy,
+          sell,
+          maxOffer: Math.max(0, sell - d.operatingCost - (sell * d.targetMarginPct) / 100),
+          profit: margin,
+          marginPct,
+        },
+        printUrl: `/cotizacion/${publicToken}`,
+      },
+      { status: 201 }
+    );
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: 'No se pudo crear la cotización.' }, { status: 400 });
+  }
+}
