@@ -1,0 +1,91 @@
+/* Effects V1.2 */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217,255,69,.35); }
+  50% { box-shadow: 0 0 28px 6px rgba(217,255,69,.25); }
+}
+
+.heroCopy { animation: fadeUp .7s ease both; }
+.heroCard {
+  animation: fadeUp .85s ease .1s both, pulseGlow 3.5s ease-in-out 1s infinite;
+}
+.floaty { animation: float 4.5s ease-in-out infinite; }
+.floaty.delay1 { animation-delay: .4s; }
+.floaty.delay2 { animation-delay: .8s; }
+
+.service, .impactCard {
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.service:hover, .impactCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,.08);
+  border-color: #c8c4b8;
+}
+.btn.primary { transition: transform .15s ease, box-shadow .15s ease; }
+.btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.18);
+}
+
+.impactSection {
+  background: linear-gradient(135deg, #151713 0%, #1f2418 50%, #151713 100%);
+  color: #f2f2f0;
+  padding: 90px max(28px, calc((100% - 1180px) / 2));
+}
+.impactEyebrow { color: var(--acid) !important; }
+.impactSection h2 {
+  font: 600 clamp(32px, 4vw, 52px) 'Space Grotesk';
+  letter-spacing: -.04em;
+  margin: 0 0 16px;
+  max-width: 720px;
+}
+.impactSection h2 span { color: var(--acid); }
+.impactLead {
+  color: #aeb0a6;
+  max-width: 620px;
+  line-height: 1.65;
+  margin-bottom: 40px;
+}
+.impactGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.impactCard {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(217,255,69,.2);
+  border-radius: 18px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.impactCard span {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #9aa08f;
+}
+.impactCard strong {
+  font: 700 34px 'Space Grotesk';
+  color: var(--acid);
+}
+.impactCard small { color: #7d8276; font-size: 12px; }
+.impactNote {
+  margin-top: 28px;
+  font-size: 12px;
+  color: #6f7468;
+  max-width: 560px;
+}
+.adminMsg { color: #3d6b00; font-weight: 700; margin: 10px 0; }
+
+@media (max-width: 850px) {
+  .impactGrid { grid-template-columns: 1fr; }
+}
