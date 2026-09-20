@@ -1,52 +1,161 @@
-/* Effects V1.2 */
+/* Effects V1.2 — animaciones y sección impacto */
+
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(22px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
+
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(217,255,69,.35); }
-  50% { box-shadow: 0 0 28px 6px rgba(217,255,69,.25); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 255, 69, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 28px 6px rgba(217, 255, 69, 0.25);
+  }
 }
 
-.heroCopy { animation: fadeUp .7s ease both; }
+@keyframes softPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.heroCopy {
+  animation: fadeUp 0.7s ease both;
+}
 .heroCard {
-  animation: fadeUp .85s ease .1s both, pulseGlow 3.5s ease-in-out 1s infinite;
+  animation: fadeUp 0.85s ease 0.1s both, pulseGlow 3.5s ease-in-out 1s infinite;
 }
-.floaty { animation: float 4.5s ease-in-out infinite; }
-.floaty.delay1 { animation-delay: .4s; }
-.floaty.delay2 { animation-delay: .8s; }
+.floaty {
+  animation: float 4.5s ease-in-out infinite;
+}
+.floaty.delay1 {
+  animation-delay: 0.4s;
+}
+.floaty.delay2 {
+  animation-delay: 0.8s;
+}
 
-.service, .impactCard {
-  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
-.service:hover, .impactCard:hover {
+.reveal.revealVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal.delay1 {
+  transition-delay: 0.1s;
+}
+.reveal.delay2 {
+  transition-delay: 0.2s;
+}
+.reveal.delay3 {
+  transition-delay: 0.3s;
+}
+
+.service,
+.impactCard {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.service:hover,
+.impactCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(0,0,0,.08);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
   border-color: #c8c4b8;
 }
-.btn.primary { transition: transform .15s ease, box-shadow .15s ease; }
+.btn.primary {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
 .btn.primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(0,0,0,.18);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
 .impactSection {
-  background: linear-gradient(135deg, #151713 0%, #1f2418 50%, #151713 100%);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #151713 0%, #1f2418 40%, #1a2210 70%, #151713 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 14s ease infinite;
   color: #f2f2f0;
   padding: 90px max(28px, calc((100% - 1180px) / 2));
 }
-.impactEyebrow { color: var(--acid) !important; }
+.impactSection::before {
+  content: '';
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 255, 69, 0.12) 0%, transparent 70%);
+  top: -120px;
+  right: -80px;
+  pointer-events: none;
+  animation: softPulse 5s ease-in-out infinite;
+}
+.impactSection::after {
+  content: '';
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 255, 69, 0.08) 0%, transparent 70%);
+  bottom: -60px;
+  left: 10%;
+  pointer-events: none;
+  animation: softPulse 6s ease-in-out 1s infinite;
+}
+.impactInner {
+  position: relative;
+  z-index: 1;
+}
+.impactEyebrow {
+  color: var(--acid) !important;
+}
 .impactSection h2 {
   font: 600 clamp(32px, 4vw, 52px) 'Space Grotesk';
-  letter-spacing: -.04em;
+  letter-spacing: -0.04em;
   margin: 0 0 16px;
   max-width: 720px;
 }
-.impactSection h2 span { color: var(--acid); }
+.impactSection h2 span {
+  color: var(--acid);
+}
 .impactLead {
   color: #aeb0a6;
   max-width: 620px;
@@ -59,33 +168,118 @@
   gap: 16px;
 }
 .impactCard {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(217,255,69,.2);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(217, 255, 69, 0.2);
   border-radius: 18px;
   padding: 28px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  backdrop-filter: blur(4px);
 }
 .impactCard span {
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   color: #9aa08f;
 }
 .impactCard strong {
   font: 700 34px 'Space Grotesk';
   color: var(--acid);
 }
-.impactCard small { color: #7d8276; font-size: 12px; }
+.impactCard small {
+  color: #7d8276;
+  font-size: 12px;
+}
 .impactNote {
   margin-top: 28px;
   font-size: 12px;
   color: #6f7468;
   max-width: 560px;
 }
-.adminMsg { color: #3d6b00; font-weight: 700; margin: 10px 0; }
+
+.adminMsg {
+  color: #3d6b00;
+  font-weight: 700;
+  margin: 10px 0;
+}
+.metricCo2 strong {
+  font-size: 22px !important;
+  color: #5a7000;
+}
+
+/* CO₂ chart in admin */
+.co2Chart {
+  background: #f8f7f3;
+  border: 1px solid #e6e2d8;
+  border-radius: 14px;
+  padding: 18px 20px 14px;
+}
+.co2ChartTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 14px;
+}
+.co2Bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  min-height: 160px;
+}
+.co2BarCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.co2Bar {
+  width: 100%;
+  max-width: 48px;
+  background: linear-gradient(180deg, #d9ff45 0%, #8fa820 100%);
+  border-radius: 8px 8px 4px 4px;
+  transition: height 0.4s ease;
+}
+.co2BarValue {
+  font-size: 11px;
+  font-weight: 700;
+  color: #5a7000;
+}
+.co2BarLabel {
+  font-size: 11px;
+  color: #888;
+  text-transform: capitalize;
+}
+
+.sourceTag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #eee;
+}
+.source-manual {
+  background: #e8e4d8;
+}
+.source-collect {
+  background: #d9ff45;
+  color: #1a2200;
+}
+.source-quote {
+  background: #d0e8ff;
+}
+
+.calcCo2Row strong {
+  color: #d9ff45 !important;
+}
 
 @media (max-width: 850px) {
-  .impactGrid { grid-template-columns: 1fr; }
+  .impactGrid {
+    grid-template-columns: 1fr;
+  }
+  .co2Bars {
+    gap: 8px;
+  }
 }
