@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 
 type Log = {
   id: string;
@@ -30,6 +30,25 @@ export default function Co2Panel({ materials }: { materials: { id: string; name:
   useEffect(() => {
     load();
   }, []);
+
+  const byMonth = useMemo(() => {
+    const map = new Map<string, { kg: number; co2: number; label: string }>();
+    for (const l of logs) {
+      const d = new Date(l.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('es-AR', { month: 'short', year: '2-digit' });
+      const cur = map.get(key) || { kg: 0, co2: 0, label };
+      cur.kg += Number(l.kg);
+      cur.co2 += Number(l.co2Kg);
+      map.set(key, cur);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([, v]) => v);
+  }, [logs]);
+
+  const maxCo2 = Math.max(...byMonth.map((m) => m.co2), 1);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,7 +82,8 @@ export default function Co2Panel({ materials }: { materials: { id: string; name:
     <div>
       <h2>Impacto CO₂</h2>
       <p>
-        Registrá kg procesados por material. Se calcula el CO₂ evitado y queda almacenado en la base.
+        Registrá kg procesados por material o cerrá una cotización: el CO₂ se calcula y queda
+        almacenado.
       </p>
       <div className="adminGrid" style={{ marginTop: 12 }}>
         <div className="metric">
@@ -74,7 +94,31 @@ export default function Co2Panel({ materials }: { materials: { id: string; name:
           <span>Material reciclado</span>
           <strong>{totalKg.toLocaleString('es-AR')} kg</strong>
         </div>
+        <div className="metric">
+          <span>Eventos registrados</span>
+          <strong>{logs.length}</strong>
+        </div>
       </div>
+
+      {byMonth.length > 0 && (
+        <div className="co2Chart" style={{ marginTop: 20 }}>
+          <div className="co2ChartTitle">CO₂ por mes (últimos registros)</div>
+          <div className="co2Bars">
+            {byMonth.map((m) => (
+              <div key={m.label} className="co2BarCol">
+                <div className="co2BarValue">{Math.round(m.co2).toLocaleString('es-AR')}</div>
+                <div
+                  className="co2Bar"
+                  style={{ height: `${Math.max(8, (m.co2 / maxCo2) * 120)}px` }}
+                  title={`${m.co2.toLocaleString('es-AR')} kg CO₂`}
+                />
+                <div className="co2BarLabel">{m.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {msg && <p className="adminMsg">{msg}</p>}
       <form className="materialForm" onSubmit={onSubmit} style={{ marginTop: 16 }}>
         <select name="materialId" required defaultValue="">
@@ -114,7 +158,9 @@ export default function Co2Panel({ materials }: { materials: { id: string; name:
               <td>
                 <b>{Number(l.co2Kg).toLocaleString('es-AR')}</b>
               </td>
-              <td>{l.source}</td>
+              <td>
+                <span className={`sourceTag source-${l.source}`}>{l.source}</span>
+              </td>
             </tr>
           ))}
         </tbody>
