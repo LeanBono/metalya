@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { isAdmin } from '@/lib/auth';
 import AdminActions from './ui';
 import Calculator from './calculadora';
+import MaterialsPanel from './materials-panel';
+import Co2Panel from './co2-panel';
 
 export default async function Admin() {
   if (!(await isAdmin())) redirect('/admin/login');
@@ -32,7 +34,7 @@ export default async function Admin() {
   } catch (e) {
     console.error('Admin DB error', e);
     dbError =
-      'No se pudo conectar a la base de datos. Revisa DATABASE_URL en Vercel (Neon) y ejecuta prisma db push.';
+      'No se pudo conectar a la base de datos. Revisá DATABASE_URL en Vercel (Neon) y ejecutá prisma db push.';
   }
 
   const newCount = leads.filter((x) => x.status === 'NEW').length;
@@ -56,7 +58,7 @@ export default async function Admin() {
               Metal<span>Ya</span>
             </span>
           </a>
-          <p>Centro de operaciones · V1.1</p>
+          <p>Centro de operaciones · V1.2</p>
         </div>
         <AdminActions />
       </div>
@@ -65,11 +67,6 @@ export default async function Admin() {
         <div className="adminPanel" style={{ borderColor: '#c44', background: '#2a1515', color: '#fcc' }}>
           <h2>Error de base de datos</h2>
           <p>{dbError}</p>
-          <p style={{ fontSize: 13, opacity: 0.85 }}>
-            En Neon copia el connection string real (no uses ep-xxx de ejemplo). Pegalo en Vercel →
-            Settings → Environment Variables → DATABASE_URL → Redeploy. Luego:{' '}
-            <code>npx prisma db push</code>
-          </p>
         </div>
       )}
 
@@ -103,7 +100,7 @@ export default async function Admin() {
       <div className="adminPanel">
         <h2>Calculadora de lotes</h2>
         <p>
-          Carga los materiales, costos y margen objetivo. MetalYa calcula la oferta maxima
+          Cargá los materiales, costos y margen objetivo. MetalYa calcula la oferta máxima
           recomendada y la rentabilidad.
         </p>
         <Calculator materials={materials as any} />
@@ -118,7 +115,7 @@ export default async function Admin() {
               <th>Cliente</th>
               <th>Empresa</th>
               <th>Material / servicio</th>
-              <th>Ubicacion</th>
+              <th>Ubicación</th>
               <th>Kg</th>
               <th>Estado</th>
             </tr>
@@ -131,12 +128,6 @@ export default async function Admin() {
                   <b>{l.name}</b>
                   <br />
                   {l.phone}
-                  {l.email && (
-                    <>
-                      <br />
-                      {l.email}
-                    </>
-                  )}
                 </td>
                 <td>{l.company || '—'}</td>
                 <td>
@@ -166,10 +157,8 @@ export default async function Admin() {
             <tr>
               <th>Fecha</th>
               <th>Lote</th>
-              <th>Venta estimada</th>
               <th>Oferta</th>
               <th>Ganancia</th>
-              <th>Tipo</th>
               <th>Estado</th>
             </tr>
           </thead>
@@ -178,10 +167,8 @@ export default async function Admin() {
               <tr key={q.id}>
                 <td>{new Date(q.createdAt).toLocaleDateString('es-AR')}</td>
                 <td>{q.lot?.title || '—'}</td>
-                <td>{money(Number(q.estimatedSell))}</td>
                 <td>{money(Number(q.offer))}</td>
                 <td>{money(Number(q.actualProfit ?? q.margin))}</td>
-                <td>{q.actualProfit !== null ? 'Realizada' : 'Proyectada'}</td>
                 <td>
                   <span className="status">{q.status}</span>
                 </td>
@@ -192,9 +179,11 @@ export default async function Admin() {
       </div>
 
       <div className="adminPanel">
-        <h2>Materiales y precios internos</h2>
-        <p>Actualiza tu lista de compra/venta para usarla en futuras cotizaciones.</p>
-        <AdminActions materials={materials} />
+        <MaterialsPanel initial={materials as any} />
+      </div>
+
+      <div className="adminPanel">
+        <Co2Panel materials={materials.map((m: any) => ({ id: m.id, name: m.name }))} />
       </div>
     </main>
   );
