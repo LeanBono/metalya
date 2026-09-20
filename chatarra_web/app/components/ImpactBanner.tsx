@@ -24,6 +24,7 @@ export default function ImpactBanner() {
   const co2 = data?.totalCo2Label || '—';
   const kg = data ? data.totalKg.toLocaleString('es-AR') : '—';
   const trees = data?.treesEquivalent ?? '—';
+  const events = data?.events ?? 0;
 
   return (
     <section className="impactSection reveal">
@@ -34,7 +35,8 @@ export default function ImpactBanner() {
         </h2>
         <p className="impactLead">
           Cada kilo recuperado evita emisiones de la producción primaria. MetalYa registra el
-          impacto de los materiales que procesamos.
+          impacto de los materiales que procesamos
+          {events > 0 ? ` · ${events} operaciones registradas` : ''}.
         </p>
         <div className="impactGrid">
           <div className="impactCard floaty">
