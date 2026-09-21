@@ -21,8 +21,9 @@ export async function GET() {
       treesEquivalent: co2ToTrees(totalCo2Kg),
     });
   } catch {
+    // Tabla aún no migrada o DB offline: mostrar ceros sin romper la UI
     return NextResponse.json({
-      ok: false,
+      ok: true,
       totalCo2Kg: 0,
       totalKg: 0,
       events: 0,

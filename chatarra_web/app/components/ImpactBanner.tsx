@@ -10,21 +10,31 @@ type Impact = {
 };
 
 export default function ImpactBanner() {
-  const [data, setData] = useState<Impact | null>(null);
+  const [data, setData] = useState<Impact>({
+    totalCo2Label: '0 kg',
+    totalKg: 0,
+    treesEquivalent: 0,
+    events: 0,
+  });
 
   useEffect(() => {
     fetch('/api/impact')
       .then((r) => r.json())
       .then((j) => {
-        if (j.ok !== false) setData(j);
+        setData({
+          totalCo2Label: j.totalCo2Label ?? '0 kg',
+          totalKg: Number(j.totalKg) || 0,
+          treesEquivalent: Number(j.treesEquivalent) || 0,
+          events: Number(j.events) || 0,
+        });
       })
       .catch(() => {});
   }, []);
 
-  const co2 = data?.totalCo2Label || '—';
-  const kg = data ? data.totalKg.toLocaleString('es-AR') : '—';
-  const trees = data?.treesEquivalent ?? '—';
-  const events = data?.events ?? 0;
+  const co2 = data.totalCo2Label;
+  const kg = data.totalKg.toLocaleString('es-AR');
+  const trees = data.treesEquivalent;
+  const events = data.events;
 
   return (
     <section className="impactSection reveal">
