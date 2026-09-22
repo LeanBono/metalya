@@ -93,6 +93,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="es-AR">
+      <head>
+        <meta charSet="utf-8" />
+      </head>
       <body>
         {children}
         <script
