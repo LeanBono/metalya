@@ -47,13 +47,13 @@ export async function POST(req: Request) {
         co2FactorKg: factor,
         minKg: d.minKg ?? 0,
         zoneNote: d.zoneNote || null,
-        publicList: d.publicList ?? true,
+        publicList: d.publicList ?? false,
         unit: d.unit || 'kg',
       },
     });
     return NextResponse.json(row, { status: 201 });
   } catch {
-    return NextResponse.json({ error: 'Datos inv\u00e1lidos o material existente.' }, { status: 400 });
+    return NextResponse.json({ error: 'Datos invalidos o material existente.' }, { status: 400 });
   }
 }
 
