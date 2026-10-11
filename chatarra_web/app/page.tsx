@@ -207,7 +207,6 @@ export default function Home() {
         </a>
         <nav>
           <a href="#servicios">Servicios</a>
-          <a href="/precios">Precios</a>
           <a href="#proceso">{t.navHow}</a>
           <a href="#empresas">Empresas</a>
           <a href="#cotizar" className="navCta">
@@ -470,7 +469,7 @@ export default function Home() {
         </div>
         <p>{t.footer}</p>
         <div>
-          <a href="/precios">Precios</a> | <a href="#cotizar">Contacto</a> | <a href="/privacidad">Privacidad</a> |{' '}
+          <a href="#cotizar">Contacto</a> | <a href="/privacidad">Privacidad</a> |{' '}
           <a href="/admin">Panel</a>
         </div>
       </footer>
